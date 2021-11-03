@@ -1,0 +1,19 @@
+[Service]
+  Port = "8000"
+  Environment = "development"
+  RepoURL = "https://git.xenonstack.com/api/v4/projects/885/repository/archive.zip?sha=develop"
+  RepoPrivateKey = "xxxx"
+
+[Database]
+  name = "postgres"
+  host = "localhost"
+  port = "5432"
+  user = "postgres"
+  pass = "xxxx"
+  ideal = "10"
+
+[NatsServer]
+  url = "demo.nats.io"
+  token = "xxxx"
+  username = "user"
+  password = "xxxx"

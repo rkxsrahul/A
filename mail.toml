@@ -1,0 +1,8 @@
+[userNotification]
+  subject="Thanks for contacting us || AkiraStack"
+  template="./templates/user-notification.tmpl"
+  images=["./images/akira-email-logo.png","./images/email-template-illustration.png","./images/facebook.png","./images/twitter.png","./images/linkedin.png"]
+[supportNotification]
+  subject="New User Visited to our website || AkiraStack"
+  template="./templates/support-notification.tmpl"
+  images=["./images/akira-email-logo.png","./images/email-template-illustration.png","./images/facebook.png","./images/twitter.png","./images/linkedin.png"]
