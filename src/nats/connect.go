@@ -10,7 +10,7 @@ import (
 // InitConnection is a function to initalize a nats connection with setup options
 func InitConnection() {
 
-	nc, err := nats.Connect(config.Conf.NatsServer.URL, setupOptions()...)
+	nc, err := nats.Connect(config.Conf.NatsServer.URL)
 	if err != nil {
 		log.Fatalln("nats error -> ", err)
 		return

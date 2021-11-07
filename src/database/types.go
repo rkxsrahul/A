@@ -25,8 +25,35 @@ type RequestInfo struct {
 	UpdatedAt time.Time `json:"-"`
 }
 
+// NodeScanInfo save meta user request infromation
+type NodeScanInfo struct {
+	ID          int       `json:"_" grom:"primary_key"`
+	UUID        string    `json:"uid" gorm:"unique_index"`
+	IP          string    `json:"ip"`
+	Agent       string    `json:"agent"`
+	Timestamp   int64     `json:"timestamp"`
+	GitURL      string    `json:"git_url"`
+	Name        string    `json:"name"`
+	Email       string    `json:"email"`
+	ProjectName string    `json:"project_name"`
+	Branch      string    `json:"branch"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
+}
+
 // ScanResult save web scanned result
 type ScanResult struct {
+	ID          int       `json:"-" gorm:"primary_key"`
+	UUID        string    `json:"uid" gorm:"not null;unique_index:indx_result;"`
+	Result      string    `json:"result"`
+	CommandName string    `json:"command_name" gorm:"not null;unique_index:indx_result;"`
+	Method      string    `json:"-" gorm:"not null;unique_index:indx_result;"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
+}
+
+// NodeScanResult save web scanned result
+type NodeScanResult struct {
 	ID          int       `json:"-" gorm:"primary_key"`
 	UUID        string    `json:"uid" gorm:"not null;unique_index:indx_result;"`
 	Result      string    `json:"result"`
@@ -46,11 +73,18 @@ func CreateDBTablesIfNotExists() {
 	if !db.HasTable(&ScanResult{}) {
 		db.CreateTable(&ScanResult{})
 	}
+	if !db.HasTable(&NodeScanInfo{}) {
+		db.Create(&NodeScanInfo{})
+	}
+	if !db.HasTable(&NodeScanResult{}) {
+		db.Create(&NodeScanResult{})
+	}
 
-	db.AutoMigrate(&RequestInfo{}, &ScanResult{})
+	db.AutoMigrate(&RequestInfo{}, &ScanResult{}, &NodeScanInfo{}, &NodeScanResult{})
 
 	//keys
 	db.Model(&ScanResult{}).AddForeignKey("uuid", "request_infos(uuid)", "CASCADE", "CASCADE")
+	// db.Model(&NodeScanResult{}).AddForeignKey("uuid", "NodeScanInfo(uuid)", "CASCADE", "CASCADE")
 
 	log.Println("Database initialized successfully.")
 }

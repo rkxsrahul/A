@@ -46,3 +46,15 @@ func request(url, uuid, method, status, subject string) {
 	body, _ := json.Marshal(data)
 	nats.Publish(body, subject)
 }
+
+func gitRequest(url, uuid, method, branch, subject string) {
+	data := nats.RequestData{
+		Method: method,
+		URL:    url,
+		UUID:   uuid,
+		Status: "",
+		Branch: branch,
+	}
+	body, _ := json.Marshal(data)
+	nats.Publish(body, subject)
+}

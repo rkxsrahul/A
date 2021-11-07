@@ -254,19 +254,37 @@ func GitScan(c *gin.Context) {
 
 	//finalurl is the url to be executed to get the list of branches
 	finalurl := "https://api.github.com/repos/" + projectname + "/" + finalrepo + "/languages"
-	status, err := getlanguage(finalurl)
+	status, err := checkLanguage(finalurl)
 	if err != nil {
 		log.Println(err)
 		mapd["error"] = true
-		mapd["message"] = "Please pass the the valid url"
+		mapd["message"] = err.Error()
+		c.JSON(400, mapd)
+		return
+	}
+	if !status {
+		mapd["error"] = true
+		mapd["message"] = "Please pass the valid url"
 		c.JSON(400, mapd)
 		return
 
 	}
-
+	var info database.NodeScanInfo
+	info.GitURL = data.GitURL
+	info.IP = c.ClientIP()
+	info.Agent = c.Request.UserAgent()
+	info.Timestamp = time.Now().Unix()
+	info.UUID = xid.New().String()
+	info.Name = data.Name
+	info.Email = data.Email
+	info.Branch = data.Branch
+	db := config.DB
+	err = db.Create(&info).Error
+	log.Println(err)
+	go gitRequest(data.GitURL, info.UUID, "Node Scan", data.Branch, "nodeScan")
 }
 
-func getlanguage(url string) (bool, error) {
+func checkLanguage(url string) (bool, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -290,7 +308,9 @@ func getlanguage(url string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	log.Println(string(body))
 	if javascript.JavaScript == 0 {
+		log.Println(javascript.JavaScript)
 		return false, err
 	}
 	return true, err
