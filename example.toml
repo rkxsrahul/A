@@ -17,3 +17,6 @@
   token = "xxxx"
   username = "user"
   password = "xxxx"
+[Hubspot]
+	WebsiteID=""
+	PortalID=""

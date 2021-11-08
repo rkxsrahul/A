@@ -18,6 +18,7 @@ type Config struct {
 	Mail       Mail
 	JWT        JWT
 	NatsServer NatsServer
+	Hubspot    Hubspot
 }
 
 // Database is a structure for relational database configuration
@@ -40,6 +41,11 @@ type Mail struct {
 	Pass string
 }
 
+// Hubspot is a structure for store the Hubspot information
+type Hubspot struct {
+	WebsiteID string
+	PortalID  string
+}
 type JWT struct {
 	PrivateKey    string
 	JWTExpireTime time.Duration

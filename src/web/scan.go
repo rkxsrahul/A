@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -137,10 +138,16 @@ func Scan(c *gin.Context) {
 	go request(data.URL, info.UUID, "Network Security", "", "dNSSECEnabled")
 	go request(data.URL, info.UUID, "Network Security", "", "openPorts")
 
+	err = HubspotSubmission(data)
+	msg := ""
+	if err != nil {
+		msg = err.Error()
+	}
 	c.JSON(200, gin.H{
-		"error": false,
-		"data":  info,
-		"info":  data,
+		"error":         false,
+		"data":          info,
+		"info":          data,
+		"error_message": msg,
 	})
 }
 func CheckUser(url string) (string, error) {
@@ -220,17 +227,71 @@ func CheckUser(url string) (string, error) {
 	return res.Request.URL.Scheme + "://" + res.Request.URL.Hostname(), nil
 }
 
-type GitScanData struct {
-	GitURL      string `json:"git_url" binding:"required"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Branch      string `json:"branch"`
-	ProjectName string `json:"project_name"`
+func HubspotSubmission(data URL) error {
+
+	db := config.DB
+
+	list := database.RequestInfo{}
+	db.Where("email=?", data.Email).Find(&list)
+
+	if list.ID != 0 {
+		log.Println(list)
+		return nil
+	}
+	url := "https://api.hsforms.com/submissions/v3/integration/submit/" + config.Conf.Hubspot.PortalID + "/" + config.Conf.Hubspot.WebsiteID
+	method := "POST"
+
+	payload := strings.NewReader(`{
+  "fields": [
+    {
+      "name": "email",
+      "value": "` + data.Email + `"
+    },
+    {
+      "name": "0-2/website",
+      "value": "` + data.URL + `"
+    },
+    {
+      "name": "firstname",
+      "value": "` + data.FName + `"
+    },
+    {
+      "name": "lastname",
+      "value": "` + data.LName + `"
+    }
+  ]
+}
+      `)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	req.Header.Add("Content-Type", "application/json")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
+	log.Println(err)
+	return nil
 }
 
 func GitScan(c *gin.Context) {
 	mapd := make(map[string]interface{})
-	var data GitScanData
+	var data database.NodeInfo
 	if err := c.BindJSON(&data); err != nil {
 		log.Println(err)
 		c.JSON(400, gin.H{
@@ -253,8 +314,8 @@ func GitScan(c *gin.Context) {
 	finalrepo := Splitrepo[0]
 
 	//finalurl is the url to be executed to get the list of branches
-	finalurl := "https://api.github.com/repos/" + projectname + "/" + finalrepo + "/languages"
-	status, err := checkLanguage(finalurl)
+	finalurl := "https://api.github.com/repos/" + projectname + "/" + finalrepo
+	language, err := checkLanguage(finalurl)
 	if err != nil {
 		log.Println(err)
 		mapd["error"] = true
@@ -262,14 +323,14 @@ func GitScan(c *gin.Context) {
 		c.JSON(400, mapd)
 		return
 	}
-	if !status {
+	if language != "JavaScript" {
 		mapd["error"] = true
 		mapd["message"] = "Please pass the valid url"
 		c.JSON(400, mapd)
 		return
 
 	}
-	var info database.NodeScanInfo
+	var info database.NodeInfo
 	info.GitURL = data.GitURL
 	info.IP = c.ClientIP()
 	info.Agent = c.Request.UserAgent()
@@ -282,36 +343,36 @@ func GitScan(c *gin.Context) {
 	err = db.Create(&info).Error
 	log.Println(err)
 	go gitRequest(data.GitURL, info.UUID, "Node Scan", data.Branch, "nodeScan")
+	c.JSON(200, gin.H{
+		"error": false,
+		"data":  info,
+		"info":  data,
+	})
 }
 
-func checkLanguage(url string) (bool, error) {
+func checkLanguage(url string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	type JavaScriptStatus struct {
-		JavaScript int `json:"JavaScript"`
+	type UsedLanguage struct {
+		Language string `json:"language"`
 	}
-	var javascript JavaScriptStatus
-	err = json.Unmarshal(body, &javascript)
+	var language UsedLanguage
+	err = json.Unmarshal(body, &language)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	log.Println(string(body))
-	if javascript.JavaScript == 0 {
-		log.Println(javascript.JavaScript)
-		return false, err
-	}
-	return true, err
+	return language.Language, err
 }

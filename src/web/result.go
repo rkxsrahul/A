@@ -2,7 +2,6 @@ package web
 
 import (
 	"io"
-	"log"
 	"strings"
 	"time"
 
@@ -161,12 +160,9 @@ func ScanResult(c *gin.Context) {
 	// c.JSON(200, <-chanstream)
 	c.Stream(func(w io.Writer) bool {
 		if msg, ok := <-chanstream; ok {
-			log.Println("logs stream....", msg)
 			c.SSEvent("message", msg)
-			log.Println("truetruetruetruetruetruetruetruetrue")
 			return true
 		}
-		log.Println("falsefalsefalsefalsefalsefalsefalsefalsefalse")
 		return false
 	})
 }

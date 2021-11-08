@@ -5,10 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-
 	"git.xenonstack.com/util/continuous-security-backend/config"
+	"github.com/jinzhu/gorm"
 )
 
 // RequestInfo save meta user request infromation
@@ -26,17 +24,17 @@ type RequestInfo struct {
 }
 
 // NodeScanInfo save meta user request infromation
-type NodeScanInfo struct {
+type NodeInfo struct {
 	ID          int       `json:"_" grom:"primary_key"`
 	UUID        string    `json:"uid" gorm:"unique_index"`
-	IP          string    `json:"ip"`
-	Agent       string    `json:"agent"`
-	Timestamp   int64     `json:"timestamp"`
-	GitURL      string    `json:"git_url"`
+	GitURL      string    `json:"git_url" binding:"required"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
 	ProjectName string    `json:"project_name"`
 	Branch      string    `json:"branch"`
+	IP          string    `json:"ip"`
+	Agent       string    `json:"agent"`
+	Timestamp   int64     `json:"timestamp"`
 	CreatedAt   time.Time `json:"-"`
 	UpdatedAt   time.Time `json:"-"`
 }
@@ -53,14 +51,12 @@ type ScanResult struct {
 }
 
 // NodeScanResult save web scanned result
-type NodeScanResult struct {
-	ID          int       `json:"-" gorm:"primary_key"`
-	UUID        string    `json:"uid" gorm:"not null;unique_index:indx_result;"`
-	Result      string    `json:"result"`
-	CommandName string    `json:"command_name" gorm:"not null;unique_index:indx_result;"`
-	Method      string    `json:"-" gorm:"not null;unique_index:indx_result;"`
-	CreatedAt   time.Time `json:"-"`
-	UpdatedAt   time.Time `json:"-"`
+type NodeResult struct {
+	ID        int       `json:"-" gorm:"primary_key"`
+	UUID      string    `json:"uid" gorm:"not null;unique_index:indx_result;"`
+	Result    string    `json:"result"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }
 
 // CreateDBTablesIfNotExists Initializing Database tables
@@ -73,18 +69,17 @@ func CreateDBTablesIfNotExists() {
 	if !db.HasTable(&ScanResult{}) {
 		db.CreateTable(&ScanResult{})
 	}
-	if !db.HasTable(&NodeScanInfo{}) {
-		db.Create(&NodeScanInfo{})
+	if !db.HasTable(&NodeInfo{}) {
+		db.CreateTable(&NodeInfo{})
 	}
-	if !db.HasTable(&NodeScanResult{}) {
-		db.Create(&NodeScanResult{})
+	if !db.HasTable(&NodeResult{}) {
+		db.CreateTable(&NodeResult{})
 	}
-
-	db.AutoMigrate(&RequestInfo{}, &ScanResult{}, &NodeScanInfo{}, &NodeScanResult{})
+	db.AutoMigrate(&NodeInfo{}, &NodeResult{}, &ScanResult{}, &RequestInfo{})
 
 	//keys
 	db.Model(&ScanResult{}).AddForeignKey("uuid", "request_infos(uuid)", "CASCADE", "CASCADE")
-	// db.Model(&NodeScanResult{}).AddForeignKey("uuid", "NodeScanInfo(uuid)", "CASCADE", "CASCADE")
+	db.Model(&NodeResult{}).AddForeignKey("uuid", "node_infos(uuid)", "CASCADE", "CASCADE")
 
 	log.Println("Database initialized successfully.")
 }

@@ -44,7 +44,39 @@ func Subscribe() {
 	wg.Wait()
 }
 
+//Subscribe : This function is used to initiate subscriber
+func NodeSubscribe() {
+	var wg sync.WaitGroup
+	nc := config.NC
+	i := 0
+	subject := "node-scan-results"
+	wg.Add(1)
+
+	// Subscribe
+	if _, err := nc.Subscribe(subject, func(msg *nats.Msg) {
+		i++
+		printMsg(msg, i)
+		go saveNodeResult(msg)
+	}); err != nil {
+		log.Fatal(err)
+	}
+
+	// Wait for a message to come in
+	wg.Wait()
+}
+
 func saveToDatabase(msg *nats.Msg) {
+	var data Result
+	err := json.Unmarshal(msg.Data, &data)
+	if err != nil {
+		log.Println("JSON unmarshal: saveToDatabase", err)
+		log.Println(string(msg.Data))
+		return
+	}
+	database.SaveRow(data.Data, data.UUID, data.Header, data.Method)
+}
+
+func saveNodeResult(msg *nats.Msg) {
 	var data Result
 	err := json.Unmarshal(msg.Data, &data)
 	if err != nil {
@@ -55,5 +87,5 @@ func saveToDatabase(msg *nats.Msg) {
 	log.Println("=-=-=--==--==-=-=-")
 	log.Println(data)
 	log.Println("=-=-=--==--==-=-=-")
-	database.SaveRow(data.Data, data.UUID, data.Header, data.Method)
+	database.SaveNoderesult(data.Data, data.UUID)
 }

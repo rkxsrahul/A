@@ -108,7 +108,7 @@ func main() {
 
 	go nats.InitConnection()
 
-	//initialize gin router
+	// initialize gin router
 	router := gin.New()
 
 	//allowing CORS
@@ -143,5 +143,5 @@ func main() {
 	api.V1Routes(router)
 
 	// run the service
-	router.Run(":8002")
+	router.Run(":" + config.Conf.Service.Port)
 }

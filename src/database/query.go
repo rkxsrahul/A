@@ -20,3 +20,12 @@ func SaveRow(mapd map[string]interface{}, uuid, header, method string) {
 	result.Result = string(scanBytes)
 	db.Create(&result)
 }
+func SaveNoderesult(mapd map[string]interface{}, uuid string) {
+
+	db := config.DB
+	var result NodeResult
+	result.UUID = uuid
+	scanBytes, _ := json.Marshal(mapd)
+	result.Result = string(scanBytes)
+	db.Create(&result)
+}
