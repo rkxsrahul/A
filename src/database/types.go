@@ -27,6 +27,7 @@ type RequestInfo struct {
 type NodeInfo struct {
 	ID          int       `json:"_" grom:"primary_key"`
 	UUID        string    `json:"uid" gorm:"unique_index"`
+	RepoLang    string    `json:"repo_lang"`
 	GitURL      string    `json:"git_url" binding:"required"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
@@ -52,11 +53,12 @@ type ScanResult struct {
 
 // NodeScanResult save web scanned result
 type NodeResult struct {
-	ID        int       `json:"-" gorm:"primary_key"`
-	UUID      string    `json:"uid" gorm:"not null;unique_index:indx_result;"`
-	Result    string    `json:"result"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID         int         `json:"-" gorm:"primary_key"`
+	UUID       string      `json:"uid" gorm:"not null;unique_index:indx_result;"`
+	Result     string      `json:"-"`
+	ResultMapd interface{} `json:"result"  gorm:"-"`
+	CreatedAt  time.Time   `json:"-"`
+	UpdatedAt  time.Time   `json:"-"`
 }
 
 // CreateDBTablesIfNotExists Initializing Database tables

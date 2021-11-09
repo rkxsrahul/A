@@ -33,6 +33,7 @@ func V1Routes(router *gin.Engine) {
 
 	v1.POST("/notification", web.Notification)
 	v1.GET("/result/:id", web.ScanResult)
+	v1.GET("/git-result/:id", web.GitScanResult)
 	v1.POST("/scan", web.Scan)
 	v1.POST("/git-scan", web.GitScan)
 }

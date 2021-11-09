@@ -18,6 +18,7 @@ func InitConnection() {
 	log.Println("nats connected successfully")
 	config.NC = nc
 	go Subscribe()
+	go NodeSubscribe()
 }
 
 func setupOptions() []nats.Option {

@@ -5,18 +5,20 @@
   RepoPrivateKey = "xxxx"
 
 [Database]
-  name = "postgres"
-  host = "localhost"
-  port = "5432"
-  user = "postgres"
-  pass = "xxxx"
+  name = "csecurity"
+  host = "172.16.200.250"
+  port = "31878"
+  user = "csecurity"
+  pass = "Xenonpostgres"
   ideal = "10"
 
+
 [NatsServer]
-  url = "demo.nats.io"
+  url = "nats://172.16.200.201:32256"
   token = "xxxx"
   username = "user"
   password = "xxxx"
+
 [Hubspot]
 	WebsiteID=""
 	PortalID=""

@@ -325,24 +325,31 @@ func GitScan(c *gin.Context) {
 	}
 	if language != "JavaScript" {
 		mapd["error"] = true
-		mapd["message"] = "Please pass the valid url"
+		mapd["message"] = "Please send NodeJS Github url"
 		c.JSON(400, mapd)
 		return
 
 	}
 	var info database.NodeInfo
 	info.GitURL = data.GitURL
+	info.RepoLang = "Node JS"
 	info.IP = c.ClientIP()
 	info.Agent = c.Request.UserAgent()
 	info.Timestamp = time.Now().Unix()
 	info.UUID = xid.New().String()
 	info.Name = data.Name
 	info.Email = data.Email
-	info.Branch = data.Branch
+	if data.Branch == "" {
+		info.Branch = "Master"
+	} else {
+		info.Branch = data.Branch
+	}
+	info.ProjectName = projectname
 	db := config.DB
 	err = db.Create(&info).Error
 	log.Println(err)
 	go gitRequest(data.GitURL, info.UUID, "Node Scan", data.Branch, "nodeScan")
+
 	c.JSON(200, gin.H{
 		"error": false,
 		"data":  info,

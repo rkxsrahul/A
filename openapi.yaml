@@ -128,6 +128,66 @@ paths:
                         type: string
                       email:
                         type: string
+  /v1/git-scan:
+    post:
+      tags:
+        - Free Check Scrore
+      summary: Scan the node URL 
+      requestBody:
+        description: "enter github URL and name"
+        content:
+          application/json:
+            schema:
+              properties:
+                git_url:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                project_name:
+                  type: string
+                branch:
+                  type: string
+      responses:
+        '400':
+          description: added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  
+        '200':
+          description: when some error occur during
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                      ip:
+                        type: string
+                      agent:
+                        type: string
+                      timestamp:
+                        type: integer
+                      url:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
   /v1/notification:
     post:
       tags:
