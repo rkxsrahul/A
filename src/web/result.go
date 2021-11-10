@@ -171,52 +171,81 @@ func ScanResult(c *gin.Context) {
 	})
 }
 
-type C struct {
-	Vulnerabilities []Link `json:"Vulnerabilities"`
-}
-type Link struct {
-	Documents string `json:"Severity"`
-}
-
 func GitScanResult(c *gin.Context) {
-	// chanstream := make(chan interface{})
-	data := fetchGitResult(c.Param("id"))
-	c.JSON(200, data.ResultMapd)
-	// c.Stream(func(w io.Writer) bool {
-	// 	if msg, ok := <-chanstream; ok
-	// 		c.SSEvent("message", msg)
-	// 		return true
-	// 	}
-	// 	return false
-	// })
+	chanstream := make(chan interface{})
+	go fetchGitResult(c.Param("id"), chanstream)
+	// c.JSON(200, <-chanstream)
+	c.Stream(func(w io.Writer) bool {
+		if msg, ok := <-chanstream; ok {
+			c.SSEvent("message", msg)
+			return true
+		}
+		return false
+	})
 }
 
-func fetchGitResult(uuid string) database.NodeResult {
-	// now := time.Now().Unix()
-	// end := time.Now().Unix()
+type GitResult struct {
+	Vulnerabilities []Status `json:"Vulnerabilities"`
+}
+
+type Status struct {
+	Severity string `json:"Severity"`
+}
+
+func fetchGitResult(uuid string, result chan interface{}) {
+
+	critical := 0
+	high := 0
+	medium := 0
+	low := 0
+	unknown := 0
 	db := config.DB
-	// for end-now < 1000 {
-	// 	time.Sleep(2 * time.Second)
-	// end = time.Now().Unix()
 	noderesult := database.NodeResult{}
 	db.Where("uuid=?", uuid).Find(&noderesult)
 	var mapd []map[string]interface{}
 	err := json.Unmarshal([]byte(noderesult.Result), &mapd)
-
-	b, _ := json.Marshal(mapd)
-	type n struct {
-		Check string `json:"Check"`
-	}
-	var m []n
-	json.Unmarshal(b, &m)
-	log.Println(m[0].Check)
-
 	if err != nil {
 		log.Println(err)
 	}
 	noderesult.ResultMapd = mapd
-	return noderesult
-	// }
+
+	data, _ := json.Marshal(mapd)
+	var gitresult []GitResult
+	err = json.Unmarshal(data, &gitresult)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(gitresult[0].Vulnerabilities)
+	log.Println(len(gitresult[0].Vulnerabilities))
+	for i := 0; i < len(gitresult[0].Vulnerabilities); i++ {
+		if gitresult[0].Vulnerabilities[i].Severity == "CRITICAL" {
+			critical = critical + 1
+		} else if gitresult[0].Vulnerabilities[i].Severity == "HIGH" {
+			high = high + 1
+		} else if gitresult[0].Vulnerabilities[i].Severity == "MEDIUM" {
+			medium = medium + 1
+		} else if gitresult[0].Vulnerabilities[i].Severity == "LOW" {
+			low = low + 1
+		} else {
+			unknown = unknown + 1
+		}
+
+	}
+
+	log.Println(critical + high + medium + low + unknown)
+
+	result <- gin.H{
+		"error":    false,
+		"uuid":     noderesult.UUID,
+		"result":   noderesult.ResultMapd,
+		"critical": critical,
+		"high":     high,
+		"medium":   medium,
+		"low":      low,
+		"unknown":  unknown,
+	}
+	close(result)
+	log.Println(result)
 
 }
 

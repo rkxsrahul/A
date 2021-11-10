@@ -1,0 +1,280 @@
+openapi: 3.0.1
+info:
+  title: AKIRAStack
+  description: >-
+    This is the API Documentation for the AkiraStack free check score
+  version: 1.0.0
+servers:
+  - url: 'https://continuous-security-dashboard.xenon.work/api/openapi.yaml'
+paths:
+  /healthz:
+    get:
+      operationId: healthz
+      summary: check health of the service
+      responses:
+        '200':
+          description: connection successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  build:
+                    type: string
+        '500':
+          description: connection failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  build:
+                    type: string
+  /reload:
+    get:
+      operationId: reloadscript
+      summary: reload the script 
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  build:
+                    type: string
+        '500':
+          description: connection failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  build:
+                    type: string
+                    
+                    
+  /v1/scan:
+    post:
+      tags:
+        - Free Check Scrore
+      operationId: defaultprivacy
+      summary: Scan the website for free check score
+      requestBody:
+        description: "enter email and website URL and name"
+        content:
+          application/json:
+            schema:
+              properties:
+                url:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '400':
+          description: added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  
+        '200':
+          description: when some error occur during
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                      ip:
+                        type: string
+                      agent:
+                        type: string
+                      timestamp:
+                        type: integer
+                      url:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+  /v1/git-scan:
+    post:
+      tags:
+        - Free Check Scrore
+      summary: Scan the node URL 
+      requestBody:
+        description: "enter github URL and name"
+        content:
+          application/json:
+            schema:
+              properties:
+                git_url:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                project_name:
+                  type: string
+                branch:
+                  type: string
+      responses:
+        '400':
+          description: added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  
+        '200':
+          description: when some error occur during
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                      ip:
+                        type: string
+                      agent:
+                        type: string
+                      timestamp:
+                        type: integer
+                      url:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+  /v1/notification:
+    post:
+      tags:
+        - Free Check Scrore
+      operationId: notification
+      summary: Send notification for contact us
+      requestBody:
+        description: "enter email and website URL and name"
+        content:
+          application/json:
+            schema:
+              properties:
+                url:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '200':
+          description: added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  
+        '400':
+          description: when some error occur during
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                      
+                                          
+  /v1/result/{id}:
+    get:
+      tags:
+        - Free Check Scrore
+      operationId: getScrore
+      summary: fetch the result related to the URL on the basis on UID
+      parameters:
+        - name: id
+          in: path
+          description: uid - receive from the post api
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
+                  website_security:
+                    type: array
+                    items:
+                      properties:
+                        uid:
+                          type: string
+                        result:
+                          type: string
+                        command_name:
+                          type: string
+        '400':
+          description: could not fetch the records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                  message:
+                    type: string
